@@ -5,45 +5,42 @@
 #endif
 
 #include "CompileTimeRandom.h"
+#include <intrin.h>
 
 #define STR_CHAR(s, i) (i < sizeof(s) ? s[i] : 0)
-#define STR_DWORD(s, i) ((STR_CHAR(s, i + 0) << 0) + (STR_CHAR(s, i + 1) << 8) + (STR_CHAR(s, i + 2) << 16) + (STR_CHAR(s, i + 3) << 24))
+#define STR_UNSIGNED(s, i) ((STR_CHAR(s, i + 0) << 0) + (STR_CHAR(s, i + 1) << 8) + (STR_CHAR(s, i + 2) << 16) + (STR_CHAR(s, i + 3) << 24))
 
-//Remove string from .rdata section with 2 encryption keys
 #define STRDEF_ENCRYPT_KEY2(s, i) \
 if constexpr (i < sizeof(s)) {\
-	const PDWORD p = (PDWORD)&b[i];\
-	constexpr DWORD v = STR_DWORD(s, i);\
-	constexpr DWORD k1 = (DWORD)DYC_RAND_NEXT;\
-	constexpr DWORD k2 = (DWORD)DYC_RAND_NEXT;\
-	*p = (v ^ k1) + k2;\
-	_ReadWriteBarrier();\
-	*p = (*p - k2) ^ k1;\
+	unsigned* p = (unsigned*)&b[i];\
+	constexpr unsigned v = STR_UNSIGNED(s, i);\
+	constexpr unsigned k1 = (unsigned)DYC_RAND_NEXT;\
+	constexpr unsigned k2 = (unsigned)DYC_RAND_NEXT;\
+	unsigned t;\
+	_addcarry_u32(0, (v ^ k1) + k2, -(int)k2, &t);\
+	*p = t ^ k1;\
 	_ReadWriteBarrier();\
 }
 
-//Remove string from .rdata section with a encryption key
 #define STRDEF_ENCRYPT_KEY1(s, i) \
 if constexpr (i < sizeof(s)) {\
-	const PDWORD p = (PDWORD)&b[i];\
-	constexpr DWORD v = STR_DWORD(s, i);\
-	constexpr DWORD k = (DWORD)DYC_RAND_NEXT;\
-	*p = v ^ k;\
-	_ReadWriteBarrier();\
-	*p = *p ^ k;\
+	unsigned* p = (unsigned*)&b[i];\
+	constexpr unsigned v = STR_UNSIGNED(s, i);\
+	constexpr unsigned k = (unsigned)DYC_RAND_NEXT;\
+	unsigned t;\
+	_addcarry_u32(0, v + k, -(int)k, &t);\
+	*p = t;\
 	_ReadWriteBarrier();\
 }
 
-//Remove string from .rdata section without encryption
 #define STRDEF_RAW(s, i) \
 if constexpr (i < sizeof(s)) {\
-	const PDWORD p = (PDWORD)&b[i];\
-	constexpr DWORD v = STR_DWORD(s, i);\
+	unsigned* p = (unsigned*)&b[i];\
+	constexpr unsigned v = STR_UNSIGNED(s, i);\
 	*p = v;\
 	_ReadWriteBarrier();\
 }
 
-//edit below to change encryption method
 #ifdef DEBUG
 #define STRDEF STRDEF_RAW
 #else
