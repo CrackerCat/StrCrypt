@@ -48,6 +48,7 @@ if constexpr (i < sizeof(s)) {\
 #endif
 
 #define MovStr(dst, s) [](char* b) {\
+static_assert(sizeof(s) <= 0x100, "String size must be not more than 0x100");\
 STRDEF(s, 0x00)\
 STRDEF(s, 0x04)\
 STRDEF(s, 0x08)\
