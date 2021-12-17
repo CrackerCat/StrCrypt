@@ -49,6 +49,6 @@ __forceinline static std::string StdString_Template() {
 	return szDst;
 }
 
-#define MovString(szDst, szSrc) MovString_Template<szSrc, __COUNTER__>(szDst)
-#define MovStdString(szDst, szSrc) MovStdString_Template<szSrc, __COUNTER__>(szDst)
-#define StdString(szSrc) StdString_Template<szSrc, __COUNTER__>()
+#define MovString(szDst, szSrc) MovString_Template<szSrc, __COUNTER__ + 1>(szDst)
+#define MovStdString(szDst, szSrc) MovStdString_Template<szSrc, __COUNTER__ + 1>(szDst)
+#define StdString(szSrc) StdString_Template<szSrc, __COUNTER__ + 1>()
