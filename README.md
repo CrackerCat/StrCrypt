@@ -34,3 +34,12 @@ How about binary code? let's see.
 
 ![Desktop Screenshot 2021 12 09 - 02 13 32 86 - 복사본](https://user-images.githubusercontent.com/32794121/146556071-86207fcf-8a94-4b0d-b9ec-d1f25270235f.jpg)
 
+```
+__declspec(noinline) static void DecryptStringWithCrtRand(char* szDst, unsigned Seed) {
+	unsigned i = 0;
+	srand(Seed);
+	do {
+		szDst[i] ^= (char)rand();
+	} while (szDst[i++]);
+}
+```
