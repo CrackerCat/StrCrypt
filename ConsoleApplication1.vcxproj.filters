@@ -20,10 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="movstr.h">
+    <ClInclude Include="encrypt_string.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="compiletime.h">
+    <ClInclude Include="compiletime.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="fixed_string.hpp">
