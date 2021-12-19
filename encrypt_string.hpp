@@ -40,7 +40,7 @@ Type* MovString(Type* Dst) noexcept {
 
 	//This lambda must be inlined for optimization.
 	CompileTime::Repeat<Src.size() + 1>([&](auto Index) [[msvc::forceinline]] {
-		if constexpr (Index % 4 == 0) _ReadWriteBarrier();
+		if constexpr ((Index * sizeof(Type)) % 4 == 0) std::atomic_thread_fence(std::memory_order_acq_rel);
 		//This for making sure original Src string never leak by constexpr assignment.
 		constexpr Type ConstValue = Src[Index] ^ (Type)CompileTime::Rand(Index, Seed);
 		Dst[Index] = ConstValue;
