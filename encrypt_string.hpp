@@ -6,13 +6,16 @@
 #include "fixed_string.hpp"
 #include "compiletime.hpp"
 
+static_assert(sizeof(char) == 1, "sizeof(char) must be 1");
+static_assert(sizeof(wchar_t) == 2, "sizeof(wchar_t) must be 2");
+
 template <class Type>
 __declspec(noinline) void DecryptString(Type* Dst, unsigned Seed) noexcept {
 	static_assert(sizeof(Type) <= 2, "Type must be character.");
 
 	unsigned i = 0;
 	do {
-		Dst[i] ^= (Type)CompileTimeIfPossible::Rand(Seed);
+		Dst[i] ^= (Type)CompileTime::Rand(Seed);
 	} while (Dst[i++]);
 }
 
@@ -27,24 +30,56 @@ __declspec(noinline) void DecryptStringWithCrtRand(Type* Dst, unsigned Seed) noe
 	} while (Dst[i++]);
 }
 
-template <fixstr::basic_fixed_string Src, class Type>
-Type* MovString(Type* Dst) noexcept {
-	static_assert(sizeof(Src[0]) == sizeof(Type), "Type mismatch");
-	static_assert(sizeof(Type) <= 2, "Type must be character.");
+template <fixstr::basic_fixed_string Src>
+char* MovString(char* Dst) noexcept {
+	constexpr auto Len = Src.size() + 1;
+	static_assert(Len <= 0x200, "String size must be less than 512");
+	using type_unsigned = typename std::make_unsigned<char>::type;
+	constexpr unsigned Seed = CompileTime::TimeSeed * CompileTime::Hash(Src.data());
+	constexpr auto Num = sizeof(uint32_t) / sizeof(char);
 
-	constexpr unsigned TimeSeed =
-		(__TIME__[7] - '0') * 1 + (__TIME__[6] - '0') * 10 +
-		(__TIME__[4] - '0') * 60 + (__TIME__[3] - '0') * 600 +
-		(__TIME__[1] - '0') * 3600 + (__TIME__[0] - '0') * 36000;
-	constexpr unsigned Seed = CompileTime::Rand(0, TimeSeed * CompileTime::Hash(Src.data()));
+	CompileTimeRepeat((Len - 1) / Num, Index, {
+		constexpr auto Base = Index * Num;
+		*(uint32_t*)(Dst + Base) = CompileTime::ConstEval(
+			((type_unsigned)(Src[Base + 0] ^ (char)CompileTime::Rand(Base + 0, Seed)) << (sizeof(char) * 8 * 0)) |
+			((type_unsigned)(Src[Base + 1] ^ (char)CompileTime::Rand(Base + 1, Seed)) << (sizeof(char) * 8 * 1)) |
+			((type_unsigned)(Src[Base + 2] ^ (char)CompileTime::Rand(Base + 2, Seed)) << (sizeof(char) * 8 * 2)) |
+			((type_unsigned)(Src[Base + 3] ^ (char)CompileTime::Rand(Base + 3, Seed)) << (sizeof(char) * 8 * 3))
+		);
+		//std::atomic_thread_fence(std::memory_order_acq_rel);
+		});
 
-	//This lambda must be inlined for optimization.
-	CompileTime::Repeat<Src.size() + 1>([&](auto Index) [[msvc::forceinline]] {
-		if constexpr ((Index * sizeof(Type)) % 4 == 0) std::atomic_thread_fence(std::memory_order_acq_rel);
-		//This for making sure original Src string never leak by constexpr assignment.
-		constexpr Type ConstValue = Src[Index] ^ (Type)CompileTime::Rand(Index, Seed);
-		Dst[Index] = ConstValue;
-	});
+	constexpr auto Base = (Len - 1) / Num * Num;
+	if constexpr (Base + 0 < Len) Dst[Base + 0] = CompileTime::ConstEval(Src[Base + 0] ^ (char)CompileTime::Rand(Base + 0, Seed));
+	if constexpr (Base + 1 < Len) Dst[Base + 1] = CompileTime::ConstEval(Src[Base + 1] ^ (char)CompileTime::Rand(Base + 1, Seed));
+	if constexpr (Base + 2 < Len) Dst[Base + 2] = CompileTime::ConstEval(Src[Base + 2] ^ (char)CompileTime::Rand(Base + 2, Seed));
+	if constexpr (Base + 3 < Len) Dst[Base + 3] = CompileTime::ConstEval(Src[Base + 3] ^ (char)CompileTime::Rand(Base + 3, Seed));
+
+	DecryptStringWithCrtRand(Dst, Seed);
+	//DecryptString(Dst, Seed);
+	return Dst;
+}
+
+template <fixstr::basic_fixed_string Src>
+wchar_t* MovString(wchar_t* Dst) noexcept {
+	constexpr auto Len = Src.size() + 1;
+	static_assert(Len <= 0x200, "String size must be less than 512");
+	using type_unsigned = typename std::make_unsigned<wchar_t>::type;
+	constexpr unsigned Seed = CompileTime::TimeSeed * CompileTime::Hash(Src.data());
+	constexpr auto Num = sizeof(uint32_t) / sizeof(wchar_t);
+
+	CompileTimeRepeat((Len - 1) / Num, Index, {
+		constexpr auto Base = Index * Num;
+		*(uint32_t*)(Dst + Base) = CompileTime::ConstEval(
+			((type_unsigned)(Src[Base + 0] ^ (wchar_t)CompileTime::Rand(Base + 0, Seed)) << (sizeof(wchar_t) * 8 * 0)) |
+			((type_unsigned)(Src[Base + 1] ^ (wchar_t)CompileTime::Rand(Base + 1, Seed)) << (sizeof(wchar_t) * 8 * 1))
+		);
+		//std::atomic_thread_fence(std::memory_order_acq_rel);
+		});
+
+	constexpr auto Base = (Len - 1) / Num * Num;
+	if constexpr (Base + 0 < Len) Dst[Base + 0] = CompileTime::ConstEval(Src[Base + 0] ^ (wchar_t)CompileTime::Rand(Base + 0, Seed));
+	if constexpr (Base + 1 < Len) Dst[Base + 1] = CompileTime::ConstEval(Src[Base + 1] ^ (wchar_t)CompileTime::Rand(Base + 1, Seed));
 
 	DecryptStringWithCrtRand(Dst, Seed);
 	//DecryptString(Dst, Seed);
@@ -119,14 +154,33 @@ const std::basic_string<ElementType(Src)> operator""es() noexcept {
 	return MakeStdString<Src>();
 }
 #else
-char* operator<<(char* Dst, const EncryptedString<""> Str);
-wchar_t* operator<<(wchar_t* Dst, const EncryptedString<L""> Str);
-template <size_t M> std::array<char, M>& operator<<(std::array<char, M>& Dst, const EncryptedString<""> Str);
-template <size_t M> std::array<wchar_t, M>& operator<<(std::array<wchar_t, M>& Dst, const EncryptedString<L""> Str);
-std::basic_string<char>& operator<<(std::basic_string<char>& Dst, const EncryptedString<""> Str);
-std::basic_string<wchar_t>& operator<<(std::basic_string<wchar_t>& Dst, const EncryptedString<L""> Str);
-const EncryptedString<""> operator""e(const char*, size_t);
-const EncryptedString<L""> operator""e(const wchar_t*, size_t);
+//Decrypt string and put into buffer.
+char* operator<<(char* Dst, const EncryptedString<"String"> Str);
+
+//Decrypt unicode string and put into buffer.
+wchar_t* operator<<(wchar_t* Dst, const EncryptedString<L"String"> Str);
+
+//Decrypt string and put into char std::array.
+template <size_t M> std::array<char, M>& operator<<(std::array<char, M>& Dst, const EncryptedString<"String"> Str);
+
+//Decrypt unicode string and put into wchar_t std::array.
+template <size_t M> std::array<wchar_t, M>& operator<<(std::array<wchar_t, M>& Dst, const EncryptedString<L"String"> Str);
+
+//Decrypt string and put into std::string.
+std::basic_string<char>& operator<<(std::basic_string<char>& Dst, const EncryptedString<"String"> Str);
+
+//Decrypt unicode string and put into std::wstring.
+std::basic_string<wchar_t>& operator<<(std::basic_string<wchar_t>& Dst, const EncryptedString<L"String"> Str);
+
+//Decrypt string and get const char* pointer.
+const EncryptedString<"String"> operator""e(const char*, size_t);
+
+//Decrypt unicode string and get const wchar_t* pointer.
+const EncryptedString<L"String"> operator""e(const wchar_t*, size_t);
+
+//Decrypt string and get std::string.
 std::string operator""es(const char*, size_t);
+
+//Decrypt unicode string and get std::wstring.
 std::wstring operator""es(const wchar_t*, size_t);
 #endif
