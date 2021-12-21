@@ -1,25 +1,25 @@
 #pragma once
 #define CompileTimeRepeatMaxCount 0x100
 
-#define CheckAndRepeatEach0(N, IndexName, Func)\
-	if constexpr (N < LoopCount) { constexpr auto IndexName = N; Func } else break
+#define CheckAndRepeatEach0(N, IndexName, ...)\
+	if constexpr (N < LoopCount) { constexpr auto IndexName = N; __VA_ARGS__ } else break
 
-#define CheckAndRepeatEach1(N, IndexName, Func)\
-	CheckAndRepeatEach0(N + 0x00, IndexName, Func); CheckAndRepeatEach0(N + 0x01, IndexName, Func); CheckAndRepeatEach0(N + 0x02, IndexName, Func); CheckAndRepeatEach0(N + 0x03, IndexName, Func);\
-	CheckAndRepeatEach0(N + 0x04, IndexName, Func); CheckAndRepeatEach0(N + 0x05, IndexName, Func); CheckAndRepeatEach0(N + 0x06, IndexName, Func); CheckAndRepeatEach0(N + 0x07, IndexName, Func)
+#define CheckAndRepeatEach1(N, IndexName, ...)\
+	CheckAndRepeatEach0(N + 0x00, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x01, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x02, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x03, IndexName, __VA_ARGS__);\
+	CheckAndRepeatEach0(N + 0x04, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x05, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x06, IndexName, __VA_ARGS__); CheckAndRepeatEach0(N + 0x07, IndexName, __VA_ARGS__)
 
-#define CheckAndRepeatEach2(N, IndexName, Func)\
-	CheckAndRepeatEach1(N + 0x00, IndexName, Func); CheckAndRepeatEach1(N + 0x08, IndexName, Func); CheckAndRepeatEach1(N + 0x10, IndexName, Func); CheckAndRepeatEach1(N + 0x18, IndexName, Func);\
-	CheckAndRepeatEach1(N + 0x20, IndexName, Func); CheckAndRepeatEach1(N + 0x28, IndexName, Func); CheckAndRepeatEach1(N + 0x30, IndexName, Func); CheckAndRepeatEach1(N + 0x38, IndexName, Func)
+#define CheckAndRepeatEach2(N, IndexName, ...)\
+	CheckAndRepeatEach1(N + 0x00, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x08, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x10, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x18, IndexName, __VA_ARGS__);\
+	CheckAndRepeatEach1(N + 0x20, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x28, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x30, IndexName, __VA_ARGS__); CheckAndRepeatEach1(N + 0x38, IndexName, __VA_ARGS__)
 
-#define CheckAndRepeatEach3(N, IndexName, Func)\
-	CheckAndRepeatEach2(N + 0x00, IndexName, Func); CheckAndRepeatEach2(N + 0x40, IndexName, Func); CheckAndRepeatEach2(N + 0x80, IndexName, Func); CheckAndRepeatEach2(N + 0xC0, IndexName, Func)
+#define CheckAndRepeatEach3(N, IndexName, ...)\
+	CheckAndRepeatEach2(N + 0x00, IndexName, __VA_ARGS__); CheckAndRepeatEach2(N + 0x40, IndexName, __VA_ARGS__); CheckAndRepeatEach2(N + 0x80, IndexName, __VA_ARGS__); CheckAndRepeatEach2(N + 0xC0, IndexName, __VA_ARGS__)
 
-#define CompileTimeRepeat(Count, IndexName, Func)\
+#define CompileTimeRepeat(Count, IndexName, ...)\
 do {\
 	constexpr auto LoopCount = Count;\
 	static_assert(LoopCount <= CompileTimeRepeatMaxCount, "Too big loopcount");\
-	CheckAndRepeatEach3(0, IndexName, Func);\
+	CheckAndRepeatEach3(0, IndexName, __VA_ARGS__);\
 }while(0)
 
 
