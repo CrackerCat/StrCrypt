@@ -122,7 +122,7 @@ private:
 	mutable ElementType(Src) Temp[Src.size() + 1];
 public:
 	//This constructor make compiler not initialize temp array to 0
-	EncryptedString() {}
+	EncryptedString() noexcept {}
 	operator const ElementType(Src)* () const noexcept {
 		return MovArray<Src>(Temp);
 	}
