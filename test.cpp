@@ -6,29 +6,29 @@ int main() {
 	wprintf(L"C++20 required to compile.\n"e);
 
 	char buf[100];
-	printf(buf << "works with c buffer \n"e);
+	printf(buf << "works with char buffer \n"e);
 
 	wchar_t wbuf[100];
-	wprintf(wbuf << L"works with c buffer(wchar_t).\n"e);
+	wprintf(wbuf << L"works with wchar_t buffer.\n"e);
 
-	std::array<char, 100> stdarr = "works with std::array<char> : = \n"e;
+	std::array<char, 100> stdarr = "works with std::array<char> : constructor\n"e;
 	printf(stdarr.data());
-	stdarr << "works with std::array<char> : << \n"e;
+	stdarr = "works with std::array<char> : assignment\n"e;
 	printf(stdarr.data());
 
-	std::array<wchar_t, 100> wstdarr = L"works with std::array<wchar_t> : =\n"e;
+	std::array<wchar_t, 100> wstdarr = L"works with std::array<wchar_t> : constructor\n"e;
 	wprintf(wstdarr.data());
-	wstdarr << L"works with std::array<wchar_t> : <<\n"e;
+	wstdarr = L"works with std::array<wchar_t> : assignment\n"e;
 	wprintf(wstdarr.data());
 
-	std::string stdstr = "works with std::string : =\n"e;
+	std::string stdstr = "works with std::string : constructor\n"e;
 	printf(stdstr.c_str());
-	stdstr << "works with std::string : <<\n"e;
+	stdstr = (std::string)"works with std::string : assignment\n"e;
 	printf(stdstr.c_str());
 
-	std::wstring wstdstr = L"works with std::wstring : =\n"e;
+	std::wstring wstdstr = L"works with std::wstring : constructor\n"e;
 	wprintf(wstdstr.c_str());
-	wstdstr << L"works with std::wstring : <<\n"e;
+	wstdstr = (std::wstring)L"works with std::wstring : assignment\n"e;
 	wprintf(wstdstr.c_str());
 	return 0;
 }
