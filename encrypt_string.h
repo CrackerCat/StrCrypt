@@ -1,5 +1,4 @@
 #pragma once
-#include <Windows.h>
 #include <string>
 #include "fixed_string.hpp"
 #include "compiletime.h"
