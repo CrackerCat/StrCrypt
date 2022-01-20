@@ -145,8 +145,8 @@
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="encrypt_string.hpp" />
-    <ClInclude Include="compiletime.hpp" />
+    <ClInclude Include="compiletime.h" />
+    <ClInclude Include="encrypt_string.h" />
     <ClInclude Include="fixed_string.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
