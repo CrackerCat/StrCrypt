@@ -44,6 +44,5 @@ int main() {
 	wprintf(wstdstr.c_str());
 	return 0;
 }
-}
 ```
 
