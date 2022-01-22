@@ -2,6 +2,12 @@
 #include "encrypt_string.h"
 
 int main() {
+	//Pay attention to the lifetime of the string!
+	//Encrypted string constant can be used as a function parameter. 
+	//ex) printf("encrypted string"e);
+	//If you want to replace a string pointer without worrying about its lifetime, use the eg suffix. 
+	//ex) const char* pStr = "encrypted string"eg;
+
 	printf("Just add 'e' suffix to end of string to encrypt your string.\n"e);
 	wprintf(L"C++20 required to compile.\n"e);
 
